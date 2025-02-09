@@ -135,20 +135,54 @@ void CreateVocabulary(Parameters *p)
     string line;
 
     int offset = p->offset;
+
+    unsigned int lineNumber = 0;
+
+    while (getline(fasta, line))
+    {
+        if (offset >= line.size())
+        {
+            offset -= line.size();
+            lineNumber++;
+        }
+    }
+
     unsigned int ascii_value = 0;
+    unsigned int counter = 0;
+    char letter;
     bool first = true;
 
     while (getline(fasta, line))
     {
-        if (offset > line.size())
+        // if the counter is less than the line number, continue
+        if (counter < lineNumber)
         {
-            offset -= line.size();
+            counter++;
             continue;
         }
 
-        char letter = line[offset];
+        // if the offset is greater than the size of the line, subtract the size of the line from the offset and increment the line number
+        if (offset > line.size())
+        {
+            offset -= line.size();
+            lineNumber++;
+            continue;
+        }
+
+        if (!first && ascii_value > line.size())
+        {
+            ascii_value -= line.size();
+            continue;
+        }
+
+        letter = line[offset];
         // get the ascii value of the letter
-        ascii_value = (int)letter;
+        // only the first time
+        if (first)
+        {
+            ascii_value = (int)letter;
+            first = false;
+        }
         // for each letter in the abecedary, only capital letters
         for (char c = 'A'; c <= 'Z'; c++)
         {
@@ -157,7 +191,7 @@ void CreateVocabulary(Parameters *p)
                 continue;
 
             // if the ascii value of the letter is the same as the ascii value of the current letter break the loop
-            if (ascii_value == (int)c)
+            if (letter == c)
                 break;
 
             // if the letter already has a value in the dictionary, continue
@@ -167,12 +201,6 @@ void CreateVocabulary(Parameters *p)
             // add the value to the dictionary
             protein_dict[c] = letter;
             break;
-        }
-
-        if (first)
-        {
-            offset = ascii_value;
-            first = false;
         }
     }
 
