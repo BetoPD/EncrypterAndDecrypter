@@ -13,6 +13,7 @@ struct Parameters
     string text;
     unsigned int offset;
     unsigned int tries;
+    unordered_map<char, char> protein_dict;
 
     Parameters(string fasta, unsigned int offset, unsigned int tries, string text)
     {
@@ -20,6 +21,7 @@ struct Parameters
         this->offset = offset;
         this->tries = tries;
         this->text = text;
+        this->protein_dict = {{'A', '\0'}, {'C', '\0'}, {'D', '\0'}, {'E', '\0'}, {'F', '\0'}, {'G', '\0'}, {'H', '\0'}, {'I', '\0'}, {'K', '\0'}, {'L', '\0'}, {'M', '\0'}, {'N', '\0'}, {'P', '\0'}, {'Q', '\0'}, {'R', '\0'}, {'S', '\0'}, {'T', '\0'}, {'V', '\0'}, {'W', '\0'}, {'Y', '\0'}, {'B', 'Z'}, {'Z', 'B'}, {'X', 'J'}, {'J', 'X'}, {'U', 'O'}, {'O', 'U'}};
     }
 
     Parameters()
@@ -28,6 +30,7 @@ struct Parameters
         offset = 0;
         tries = 0;
         text = "";
+        this->protein_dict = {{'A', '\0'}, {'C', '\0'}, {'D', '\0'}, {'E', '\0'}, {'F', '\0'}, {'G', '\0'}, {'H', '\0'}, {'I', '\0'}, {'K', '\0'}, {'L', '\0'}, {'M', '\0'}, {'N', '\0'}, {'P', '\0'}, {'Q', '\0'}, {'R', '\0'}, {'S', '\0'}, {'T', '\0'}, {'V', '\0'}, {'W', '\0'}, {'Y', '\0'}, {'B', 'Z'}, {'Z', 'B'}, {'X', 'J'}, {'J', 'X'}, {'U', 'O'}, {'O', 'U'}};
     }
 };
 
@@ -126,7 +129,6 @@ void CreateVocabulary(Parameters *p)
         return;
 
     unordered_map<char, bool> used;
-    unordered_map<char, char> protein_dict = {{'A', '\0'}, {'C', '\0'}, {'D', '\0'}, {'E', '\0'}, {'F', '\0'}, {'G', '\0'}, {'H', '\0'}, {'I', '\0'}, {'K', '\0'}, {'L', '\0'}, {'M', '\0'}, {'N', '\0'}, {'P', '\0'}, {'Q', '\0'}, {'R', '\0'}, {'S', '\0'}, {'T', '\0'}, {'V', '\0'}, {'W', '\0'}, {'Y', '\0'}, {'B', 'Z'}, {'Z', 'B'}, {'X', 'J'}, {'J', 'X'}, {'U', 'O'}, {'O', 'U'}};
     string content, line;
 
     unsigned int i = 0;
@@ -154,27 +156,29 @@ void CreateVocabulary(Parameters *p)
 
         for (char c = 'A'; c <= 'Z'; c++)
         {
-            if (protein_dict[c] != '\0')
+            if (p->protein_dict[c] != '\0')
                 continue;
 
             // safely check if the letter is already used, if it does not exists in the map
             if (used[letter])
                 continue;
 
-            protein_dict[c] = letter;
+            p->protein_dict[c] = letter;
             used[letter] = true;
             break;
         }
     }
 
-    // print the dictionary
-    for (auto it = protein_dict.begin(); it != protein_dict.end(); it++)
-        cout << it->first << " -> " << it->second << endl;
+    fasta.close();
+}
 
-    // replace the text with the vocabulary
+void PrintText(Parameters *p)
+{
     for (int i = 0; i < p->text.size(); i++)
     {
-        switch (p->text[i])
+        char c = p->text[i];
+
+        switch (c)
         {
         case ' ':
             cout << ' ';
@@ -186,14 +190,10 @@ void CreateVocabulary(Parameters *p)
             cout << '\r';
             break;
         default:
-            cout << protein_dict[p->text[i]];
+            cout << p->protein_dict[c];
             break;
         }
     }
-
-    cout << endl;
-
-    fasta.close();
 }
 
 void Encrypt()
@@ -204,7 +204,11 @@ void Encrypt()
     // Sets the vector with the parameters
     SetParametersVector(&parameters);
     // Create the vocabulary
-    CreateVocabulary(parameters[0]);
+    for (Parameters *p : parameters)
+    {
+        CreateVocabulary(p);
+        PrintText(p);
+    }
 }
 
 int main()
