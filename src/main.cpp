@@ -18,7 +18,7 @@ struct Parameters
     {
         this->fasta = fasta;
         this->offset = offset;
-        this->offset = offset;
+        this->tries = tries;
         this->text = text;
     }
 
@@ -33,24 +33,18 @@ struct Parameters
 
 void CleanText(string &text)
 {
-    // Text to upper case
+    // Convert all characters to uppercase.
     transform(text.begin(), text.end(), text.begin(), ::toupper);
 
-    // clean special characters
-    for (int i = 0; i < text.size(); i++)
-    {
-
-        // Finding the character whose
-        // ASCII value fall under this
-        // range
-        if (text[i] < 'A' || text[i] > 'Z')
-        {
-            // erase function to erase
-            // the character
-            text.erase(i, 1);
-            i--;
-        }
-    }
+    // Remove characters that are not A-Z and not white space.
+    text.erase(
+        remove_if(text.begin(), text.end(),
+                  [](char c)
+                  {
+                      // Keep the character if it is an uppercase letter or a white space.
+                      return !((c >= 'A' && c <= 'Z') || isspace(c));
+                  }),
+        text.end());
 }
 
 void GetParameters(string text, Parameters *p)
@@ -113,7 +107,7 @@ void SetParametersVector(vector<Parameters *> *p)
         }
         else
         {
-            text += line;
+            text = line;
             // Clean text
             CleanText(text);
             // Add the text to the parameters
@@ -131,78 +125,73 @@ void CreateVocabulary(Parameters *p)
     if (!fasta.is_open())
         return;
 
+    unordered_map<char, bool> used;
     unordered_map<char, char> protein_dict = {{'A', '\0'}, {'C', '\0'}, {'D', '\0'}, {'E', '\0'}, {'F', '\0'}, {'G', '\0'}, {'H', '\0'}, {'I', '\0'}, {'K', '\0'}, {'L', '\0'}, {'M', '\0'}, {'N', '\0'}, {'P', '\0'}, {'Q', '\0'}, {'R', '\0'}, {'S', '\0'}, {'T', '\0'}, {'V', '\0'}, {'W', '\0'}, {'Y', '\0'}, {'B', 'Z'}, {'Z', 'B'}, {'X', 'J'}, {'J', 'X'}, {'U', 'O'}, {'O', 'U'}};
-    string line;
+    string content, line;
 
-    int offset = p->offset;
-
-    unsigned int lineNumber = 0;
+    unsigned int i = 0;
 
     while (getline(fasta, line))
+        content += line;
+
+    content = content.substr(p->offset);
+
+    char letter = content[0];
+    unsigned int ascii = (int)letter;
+
+    // for each capital letter
+    for (int i = 0; i < content.size(); i += ascii)
     {
-        if (offset >= line.size())
-        {
-            offset -= line.size();
-            lineNumber++;
-        }
-    }
+        letter = content[i];
 
-    unsigned int ascii_value = 0;
-    unsigned int counter = 0;
-    char letter;
-    bool first = true;
-
-    while (getline(fasta, line))
-    {
-        // if the counter is less than the line number, continue
-        if (counter < lineNumber)
-        {
-            counter++;
+        // skip spaces
+        if (letter == ' ' || letter == '\n' || letter == '\r')
             continue;
-        }
 
-        // if the offset is greater than the size of the line, subtract the size of the line from the offset and increment the line number
-        if (offset > line.size())
-        {
-            offset -= line.size();
-            lineNumber++;
+        // or a special character
+        if (letter < 'A' || letter > 'Z')
             continue;
-        }
 
-        if (!first && ascii_value > line.size())
-        {
-            ascii_value -= line.size();
-            continue;
-        }
-
-        letter = line[offset];
-        // get the ascii value of the letter
-        // only the first time
-        if (first)
-        {
-            ascii_value = (int)letter;
-            first = false;
-        }
-        // for each letter in the abecedary, only capital letters
         for (char c = 'A'; c <= 'Z'; c++)
         {
-            // except for the letters B, X, U, Z, J, O
-            if (c == 'B' || c == 'X' || c == 'U' || c == 'Z' || c == 'J' || c == 'O')
-                continue;
-
-            // if the ascii value of the letter is the same as the ascii value of the current letter break the loop
-            if (letter == c)
-                break;
-
-            // if the letter already has a value in the dictionary, continue
             if (protein_dict[c] != '\0')
                 continue;
 
-            // add the value to the dictionary
+            // safely check if the letter is already used, if it does not exists in the map
+            if (used[letter])
+                continue;
+
             protein_dict[c] = letter;
+            used[letter] = true;
             break;
         }
     }
+
+    // print the dictionary
+    for (auto it = protein_dict.begin(); it != protein_dict.end(); it++)
+        cout << it->first << " -> " << it->second << endl;
+
+    // replace the text with the vocabulary
+    for (int i = 0; i < p->text.size(); i++)
+    {
+        switch (p->text[i])
+        {
+        case ' ':
+            cout << ' ';
+            break;
+        case '\n':
+            cout << '\n';
+            break;
+        case '\r':
+            cout << '\r';
+            break;
+        default:
+            cout << protein_dict[p->text[i]];
+            break;
+        }
+    }
+
+    cout << endl;
 
     fasta.close();
 }
@@ -214,6 +203,8 @@ void Encrypt()
     vector<Parameters *> parameters;
     // Sets the vector with the parameters
     SetParametersVector(&parameters);
+    // Create the vocabulary
+    CreateVocabulary(parameters[0]);
 }
 
 int main()
