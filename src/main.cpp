@@ -63,7 +63,7 @@ void GetParameters(string text, Parameters *p)
     {
         if (pos == 1)
         {
-            p->offset = stoi(token);
+            p->offset = stoi(token) - 2;
         }
         else if (pos == 2)
         {
@@ -105,8 +105,6 @@ void SetParametersVector(vector<Parameters *> *p)
             GetParameters(rule, params);
             // Set text to an empty string again
             p->push_back(params);
-            // Clear the text
-            text = "";
         }
         else
         {
@@ -131,27 +129,60 @@ void CreateVocabulary(Parameters *p)
     unordered_map<char, bool> used;
     string content, line;
 
-    unsigned int i = 0;
+    unsigned int asciiOffset = 0;
 
-    while (getline(fasta, line))
-        content += line;
-
-    content = content.substr(p->offset);
-
-    char letter = content[0];
-    unsigned int ascii = (int)letter;
-
-    // for each capital letter
-    for (int i = 0; i < content.size(); i += ascii)
+    while (getline(fasta, line, '>'))
     {
-        letter = content[i];
+        content = line;
+        // clean \r and \n
+        content.erase(remove(content.begin(), content.end(), '\r'), content.end());
+        content.erase(remove(content.begin(), content.end(), '\n'), content.end());
 
-        // skip spaces
-        if (letter == ' ' || letter == '\n' || letter == '\r')
+        CleanText(content);
+
+        if (p->offset > content.size())
             continue;
 
-        // or a special character
+        asciiOffset = (int)content[p->offset];
+    }
+
+    bool first = true;
+    bool done = false;
+    char letter;
+    unsigned int accumulative = 0;
+
+    while (!done)
+    {
+        if (first)
+        {
+            letter = content[p->offset];
+            accumulative += p->offset;
+        }
+        else
+        {
+            accumulative += asciiOffset;
+
+            while (accumulative > content.size())
+            {
+                getline(fasta, content, '>');
+                content.erase(remove(content.begin(), content.end(), '\r'), content.end());
+                content.erase(remove(content.begin(), content.end(), '\n'), content.end());
+                // to upper
+                transform(content.begin(), content.end(), content.begin(), ::toupper);
+
+                accumulative -= content.size() - 2;
+            }
+
+            letter = content[accumulative];
+        }
+
+        first = false;
+
+        // if letter is a special character, then skip
         if (letter < 'A' || letter > 'Z')
+            continue;
+
+        if (used[letter] == true)
             continue;
 
         for (char c = 'A'; c <= 'Z'; c++)
@@ -160,13 +191,14 @@ void CreateVocabulary(Parameters *p)
                 continue;
 
             // safely check if the letter is already used, if it does not exists in the map
-            if (used[letter])
-                continue;
-
             p->protein_dict[c] = letter;
             used[letter] = true;
             break;
         }
+
+        // if size of used is 26, then we have all the letters
+        if (used.size() >= 20)
+            done = true;
     }
 
     fasta.close();
@@ -196,6 +228,14 @@ void PrintText(Parameters *p)
     }
 }
 
+void PrintVocabulary(Parameters *p)
+{
+    for (auto it = p->protein_dict.begin(); it != p->protein_dict.end(); it++)
+    {
+        cout << it->first << " -> " << it->second << endl;
+    }
+}
+
 void Encrypt()
 {
 
@@ -207,6 +247,7 @@ void Encrypt()
     for (Parameters *p : parameters)
     {
         CreateVocabulary(p);
+        PrintVocabulary(p);
         PrintText(p);
     }
 }
