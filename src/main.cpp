@@ -63,7 +63,7 @@ void GetParameters(string text, Parameters *p)
     {
         if (pos == 1)
         {
-            p->offset = stoi(token) - 1;
+            p->offset = stoi(token);
         }
         else if (pos == 2)
         {
@@ -153,6 +153,9 @@ void CreateVocabulary(Parameters *p)
     unsigned int currentOffset = asciiOffset;
     char letter;
 
+    const char amino_acids[] = {'A', 'T', 'W', 'N', 'F', 'D', 'L', 'V', 'Y', 'C',
+                                'P', 'H', 'E', 'M', 'G', 'Q', 'R', 'I', 'S', 'K'};
+
     while (getline(fasta, line) && used.size() <= 20)
     {
         line.erase(remove(line.begin(), line.end(), '\r'), line.end());
@@ -172,13 +175,13 @@ void CreateVocabulary(Parameters *p)
         if (used[letter] == true)
             continue;
 
-        for (char c = 'A'; c <= 'Z'; c++)
+        for (char aa : amino_acids)
         {
-            if (p->protein_dict[c] != '\0')
+            if (p->protein_dict[aa] != '\0')
                 continue;
 
             // safely check if the letter is already used, if it does not exists in the map
-            p->protein_dict[c] = letter;
+            p->protein_dict[aa] = letter;
             used[letter] = true;
             break;
         }
