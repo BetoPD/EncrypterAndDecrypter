@@ -63,7 +63,7 @@ void GetParameters(string text, Parameters *p)
     {
         if (pos == 1)
         {
-            p->offset = stoi(token) - 2;
+            p->offset = stoi(token) - 1;
         }
         else if (pos == 2)
         {
@@ -127,60 +127,47 @@ void CreateVocabulary(Parameters *p)
         return;
 
     unordered_map<char, bool> used;
-    string content, line;
+    string line;
 
     unsigned int asciiOffset = 0;
 
-    while (getline(fasta, line, '>'))
+    while (getline(fasta, line))
     {
-        content = line;
-        // clean \r and \n
-        content.erase(remove(content.begin(), content.end(), '\r'), content.end());
-        content.erase(remove(content.begin(), content.end(), '\n'), content.end());
+        // remove \r and \n
+        line.erase(remove(line.begin(), line.end(), '\r'), line.end());
+        line.erase(remove(line.begin(), line.end(), '\n'), line.end());
 
-        CleanText(content);
-
-        if (p->offset > content.size())
+        if (line[0] != '>')
             continue;
 
-        asciiOffset = (int)content[p->offset];
+        if (line.size() < p->offset)
+            continue;
+
+        asciiOffset = (int)line[p->offset];
+        break;
     }
 
-    bool first = true;
-    bool done = false;
+    // move to the top of the file
+    fasta.clear();
+    fasta.seekg(0, ios::beg);
+    unsigned int currentOffset = asciiOffset;
     char letter;
-    unsigned int accumulative = 0;
 
-    while (!done)
+    while (getline(fasta, line) && used.size() <= 20)
     {
-        if (first)
-        {
-            letter = content[p->offset];
-            accumulative += p->offset;
-        }
-        else
-        {
-            accumulative += asciiOffset;
+        line.erase(remove(line.begin(), line.end(), '\r'), line.end());
+        line.erase(remove(line.begin(), line.end(), '\n'), line.end());
 
-            while (accumulative > content.size())
-            {
-                getline(fasta, content, '>');
-                content.erase(remove(content.begin(), content.end(), '\r'), content.end());
-                content.erase(remove(content.begin(), content.end(), '\n'), content.end());
-                // to upper
-                transform(content.begin(), content.end(), content.begin(), ::toupper);
-
-                accumulative -= content.size() - 2;
-            }
-
-            letter = content[accumulative];
-        }
-
-        first = false;
-
-        // if letter is a special character, then skip
-        if (letter < 'A' || letter > 'Z')
+        if (line[0] == '>')
             continue;
+
+        if (line.size() < currentOffset)
+        {
+            currentOffset -= line.size();
+            continue;
+        }
+
+        letter = line[currentOffset - 1];
 
         if (used[letter] == true)
             continue;
@@ -196,9 +183,7 @@ void CreateVocabulary(Parameters *p)
             break;
         }
 
-        // if size of used is 26, then we have all the letters
-        if (used.size() >= 20)
-            done = true;
+        currentOffset = asciiOffset;
     }
 
     fasta.close();
