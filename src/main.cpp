@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <sstream>
 #include <vector>
+#include <stdexcept>
 
 using namespace std;
 
@@ -119,7 +120,7 @@ void SetParametersVector(vector<Parameters *> *p)
     file.close();
 }
 
-void CreateVocabulary(Parameters *p)
+void CreateVocabulary(Parameters *p, unsigned int tries = 0)
 {
     ifstream fasta(p->fasta);
 
@@ -130,6 +131,7 @@ void CreateVocabulary(Parameters *p)
     string line;
 
     unsigned int asciiOffset = 0;
+    bool fileFinished = true;
 
     while (getline(fasta, line))
     {
@@ -144,7 +146,19 @@ void CreateVocabulary(Parameters *p)
             continue;
 
         asciiOffset = (int)line[p->offset];
+        fileFinished = false;
         break;
+    }
+
+    if (fileFinished)
+    {
+        if (tries < p->tries)
+        {
+            return CreateVocabulary(p, tries + 1);
+        }
+        // raise an error
+        throw std::runtime_error("Could't build vocabulary");
+        return;
     }
 
     // move to the top of the file
@@ -156,7 +170,7 @@ void CreateVocabulary(Parameters *p)
     const char amino_acids[] = {'A', 'T', 'W', 'N', 'F', 'D', 'L', 'V', 'Y', 'C',
                                 'P', 'H', 'E', 'M', 'G', 'Q', 'R', 'I', 'S', 'K'};
 
-    while (getline(fasta, line) && used.size() <= 20)
+    while (getline(fasta, line))
     {
         line.erase(remove(line.begin(), line.end(), '\r'), line.end());
         line.erase(remove(line.begin(), line.end(), '\n'), line.end());
@@ -187,6 +201,23 @@ void CreateVocabulary(Parameters *p)
         }
 
         currentOffset = asciiOffset;
+
+        if (used.size() == 20)
+        {
+            fileFinished = false;
+            break;
+        }
+    }
+
+    if (fileFinished)
+    {
+        if (tries < p->tries)
+        {
+            return CreateVocabulary(p, tries + 1);
+        }
+        // raise an error
+        throw std::runtime_error("Could't build vocabulary");
+        return;
     }
 
     fasta.close();
@@ -236,8 +267,43 @@ void Encrypt()
     {
         CreateVocabulary(p);
         PrintVocabulary(p);
-        PrintText(p);
+        // PrintText(p);
     }
+
+    ofstream encryptedFile("../decrypt/Encrypted_document.cod");
+    if (!encryptedFile.is_open())
+    {
+        cerr << "Error: Could not open file!" << endl;
+        return;
+    }
+
+    for (Parameters *p : parameters)
+    {
+        encryptedFile << "#" << p->fasta << "," << p->offset << "," << p->tries << endl;
+        for (int i = 0; i < p->text.size(); i++)
+        {
+            char c = p->text[i];
+
+            switch (c)
+            {
+            case ' ':
+                encryptedFile << ' ';
+                break;
+            case '\n':
+                encryptedFile << '\n';
+                break;
+            case '\r':
+                encryptedFile << '\r';
+                break;
+            default:
+                encryptedFile << p->protein_dict[c];
+                break;
+            }
+        }
+        encryptedFile << endl;
+    }
+
+    encryptedFile.close();
 }
 
 int main()
