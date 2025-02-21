@@ -9,6 +9,7 @@
 // if windows use <algorithm> instead of <bits/stdc++.h> using preprocessor directives
 #ifdef _WIN32
 #include <algorithm> // Para Windows
+#include <cctype>
 #endif
 
 using namespace std;
