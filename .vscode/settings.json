@@ -4,6 +4,7 @@
     "unordered_map": "cpp",
     "fstream": "cpp",
     "istream": "cpp",
-    "stdexcept": "cpp"
+    "stdexcept": "cpp",
+    "vector": "cpp"
   }
 }

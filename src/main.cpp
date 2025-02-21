@@ -5,6 +5,11 @@
 #include <sstream>
 #include <vector>
 #include <stdexcept>
+#include <chrono>
+// if windows use <algorithm> instead of <bits/stdc++.h> using preprocessor directives
+#ifdef _WIN32
+#include <algorithm> // Para Windows
+#endif
 
 using namespace std;
 
@@ -14,6 +19,7 @@ struct Parameters
     string text;
     unsigned int offset;
     unsigned int tries;
+    unsigned int thirdParameter;
     unordered_map<char, char> protein_dict;
 
     Parameters(string fasta, unsigned int offset, unsigned int tries, string text)
@@ -27,11 +33,12 @@ struct Parameters
 
     Parameters()
     {
-        fasta = "";
-        offset = 0;
-        tries = 0;
-        text = "";
+        this->fasta = "";
+        this->offset = 0;
+        this->tries = 0;
+        this->text = "";
         this->protein_dict = {{'A', '\0'}, {'C', '\0'}, {'D', '\0'}, {'E', '\0'}, {'F', '\0'}, {'G', '\0'}, {'H', '\0'}, {'I', '\0'}, {'K', '\0'}, {'L', '\0'}, {'M', '\0'}, {'N', '\0'}, {'P', '\0'}, {'Q', '\0'}, {'R', '\0'}, {'S', '\0'}, {'T', '\0'}, {'V', '\0'}, {'W', '\0'}, {'Y', '\0'}, {'B', 'Z'}, {'Z', 'B'}, {'X', 'J'}, {'J', 'X'}, {'U', 'O'}, {'O', 'U'}};
+        this->thirdParameter = 0;
     }
 };
 
@@ -62,7 +69,11 @@ void GetParameters(string text, Parameters *p)
 
     while (getline(ss, token, ','))
     {
-        if (pos == 1)
+        if (pos == 0)
+        {
+            p->fasta = "../instructions/" + token;
+        }
+        else if (pos == 1)
         {
             p->offset = stoi(token);
         }
@@ -72,16 +83,15 @@ void GetParameters(string text, Parameters *p)
         }
         else
         {
-            p->fasta = "../instructions/" + token;
+            p->thirdParameter = stoi(token);
         }
 
         pos++;
     }
 }
 
-void SetParametersVector(vector<Parameters *> *p)
+void SetParametersVector(vector<Parameters *> *p, string filePath = "../encrypt/Original_document.txt")
 {
-    const string filePath = "../encrypt/Original_document.txt";
     cout << "Reading file..." << endl;
     ifstream file(filePath);
     if (!file.is_open())
@@ -265,9 +275,11 @@ void Encrypt()
     // Create the vocabulary
     for (Parameters *p : parameters)
     {
+        std::cout << "Encrypting " << std::endl;
         CreateVocabulary(p);
         PrintVocabulary(p);
         // PrintText(p);
+        std::cout << std::endl;
     }
 
     ofstream encryptedFile("../decrypt/Encrypted_document.cod");
@@ -306,8 +318,67 @@ void Encrypt()
     encryptedFile.close();
 }
 
+void Decrypt()
+{
+    vector<Parameters *> parameters;
+    SetParametersVector(&parameters, "../instructions/Instruction_to_decode.txt");
+
+    for (Parameters *p : parameters)
+    {
+        std::cout << "Decrypting " << std::endl;
+        CreateVocabulary(p);
+        PrintText(p);
+        PrintVocabulary(p);
+        std::cout << std::endl;
+    }
+
+    ofstream decryptedFile("../solution/Decrypted_document.txt");
+    if (!decryptedFile.is_open())
+    {
+        cerr << "Error: Could not open file!" << endl;
+        return;
+    }
+
+    for (Parameters *p : parameters)
+    {
+        decryptedFile << "#" << p->fasta << "," << p->offset << "," << p->tries << endl;
+        for (int i = 0; i < p->text.size(); i++)
+        {
+            char c = p->text[i];
+
+            switch (c)
+            {
+            case ' ':
+                decryptedFile << ' ';
+                break;
+            case '\n':
+                decryptedFile << '\n';
+                break;
+            case '\r':
+                decryptedFile << '\r';
+                break;
+            default:
+                decryptedFile << p->protein_dict[c];
+                break;
+            }
+        }
+        decryptedFile << endl;
+    }
+}
+
 int main()
 {
+    // // start time
+    // chrono::high_resolution_clock::time_point start = chrono::high_resolution_clock::now();
+    // // run the encryption
+    // Encrypt();
+    // // end time
+    // chrono::high_resolution_clock::time_point end = chrono::high_resolution_clock::now();
+    // // calculate the time
+    // chrono::microseconds duration = chrono::duration_cast<chrono::microseconds>(end - start);
+
+    // cout << "Time: " << duration.count() << " microseconds" << endl;
     Encrypt();
+    Decrypt();
     return 0;
 }
