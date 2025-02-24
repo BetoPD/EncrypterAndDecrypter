@@ -268,7 +268,7 @@ void PrintVocabulary(Parameters *p)
 
 void Encrypt()
 {
-
+    std::cout << "Encrypting " << std::endl;
     // vector of parameter pointers
     vector<Parameters *> parameters;
     // Sets the vector with the parameters
@@ -276,9 +276,8 @@ void Encrypt()
     // Create the vocabulary
     for (Parameters *p : parameters)
     {
-        std::cout << "Encrypting " << std::endl;
         CreateVocabulary(p);
-        PrintVocabulary(p);
+        // PrintVocabulary(p);
         // PrintText(p);
         std::cout << std::endl;
     }
@@ -327,15 +326,15 @@ void Encrypt()
 
 void Decrypt()
 {
+    std::cout << "Decrypting " << std::endl;
     vector<Parameters *> parameters;
     SetParametersVector(&parameters, "../decrypt/Encrypted_document.cod");
 
     for (Parameters *p : parameters)
     {
-        std::cout << "Decrypting " << std::endl;
         CreateVocabulary(p);
-        PrintText(p);
-        PrintVocabulary(p);
+        // PrintText(p);
+        // PrintVocabulary(p);
         std::cout << std::endl;
     }
 
