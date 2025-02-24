@@ -117,7 +117,7 @@ void SetParametersVector(vector<Parameters *> *p, string filePath = "./encrypt/O
 
         if (line.empty())
             continue;
-            
+
         if (line[0] == '#')
         {
             params = new Parameters();
@@ -133,7 +133,7 @@ void SetParametersVector(vector<Parameters *> *p, string filePath = "./encrypt/O
             // Clean text
             CleanText(text);
             // Add the text to the parameters
-            params->text += text;
+            params->text += text + '\n';
         }
     }
 

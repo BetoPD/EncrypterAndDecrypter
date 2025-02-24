@@ -2,7 +2,7 @@
 CXX = g++
 
 # Compiler flags
-CXXFLAGS = -std=c++11 -fdiagnostics-color=always -g
+CXXFLAGS = -std=c++20 -fdiagnostics-color=always -g
 
 # Source and Binary directories
 SRC_DIR = src
