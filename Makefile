@@ -4,45 +4,42 @@ CXX = g++
 # Compiler flags
 CXXFLAGS = -std=c++11 -fdiagnostics-color=always -g
 
-# Source directory
+# Source and Binary directories
 SRC_DIR = src
-
-# Binary directory
 BIN_DIR = bin
 
 # Source files
 SRC_FILES = $(wildcard $(SRC_DIR)/*.cpp)
 
-# Output executable
+# Output executable (por defecto para Linux)
 TARGET = $(BIN_DIR)/app
+
+# Detect OS: si es Windows, modifica TARGET y RM
+ifeq ($(OS),Windows_NT)
+    RM = del /Q
+    TARGET := $(BIN_DIR)/app.exe
+else
+    RM = rm -f
+endif
 
 # Default target
 all: $(TARGET)
 
-# Rule to build the target
+# Regla para compilar el ejecutable
 $(TARGET): $(SRC_FILES)
-	cd $(SRC_DIR) && $(CXX) $(CXXFLAGS) *.cpp -o ../$(TARGET)  # <-- Change to src and compile
+	$(CXX) $(CXXFLAGS) $(SRC_FILES) -o $(TARGET)
 
-# Run the target with parameter 1 (Encrypt)
+# Ejecutar la aplicación con parámetro 1 (Encrypt)
 run-encrypt: $(TARGET)
-	cd $(SRC_DIR) && ../$(TARGET) 1  # <-- Change to src and run
+	$(TARGET) 1
 
-# Run the target with parameter 2 (Decrypt)
+# Ejecutar la aplicación con parámetro 2 (Decrypt)
 run-decrypt: $(TARGET)
-	cd $(SRC_DIR) && ../$(TARGET) 2  # <-- Change to src and run
+	$(TARGET) 2
 
-# Detect OS
-ifeq ($(OS),Windows_NT)
-    RM = del /Q
-    TARGET = $(BIN_DIR)/app.exe
-else
-    RM = rm -f
-    TARGET = $(BIN_DIR)/app
-endif
-
-# Clean build artifacts
+# Limpiar archivos generados
 clean:
-	$(RM) $(TARGET)
+	$(RM) $(TARGET) $(BIN_DIR)/*.o
 
-# Phony targets
+# Declarar targets que no son archivos
 .PHONY: all clean run-encrypt run-decrypt
