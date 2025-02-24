@@ -72,7 +72,7 @@ void GetParameters(string text, Parameters *p)
     {
         if (pos == 0)
         {
-            p->fasta = "../instructions/" + token;
+            p->fasta = "./instructions/" + token;
         }
         else if (pos == 1)
         {
@@ -109,6 +109,15 @@ void SetParametersVector(vector<Parameters *> *p, string filePath = "./encrypt/O
 
     while (getline(file, line))
     {
+        if (!line.empty() && (unsigned char)line[0] == 0xEF)
+        {
+            // El BOM son 3 bytes: 0xEF, 0xBB, 0xBF
+            line.erase(0, 3);
+        }
+
+        if (line.empty())
+            continue;
+            
         if (line[0] == '#')
         {
             params = new Parameters();
@@ -295,7 +304,8 @@ void Encrypt()
         // encryptedFile << "#" << p->fasta << "," << p->offset << "," << p->tries << endl;
         encryptedFile << "#";
         string fasta = p->fasta;
-        fasta.erase(0, 16);
+        fasta.erase(0, 15);
+        // remove "/"
         encryptedFile << fasta << "," << p->offset << "," << p->tries << endl;
 
         for (int i = 0; i < p->text.size(); i++)
@@ -360,7 +370,8 @@ void Decrypt()
     {
         decryptedFile << "#";
         string fasta = p->fasta;
-        fasta.erase(0, 16);
+        fasta.erase(0, 15);
+
         decryptedFile << fasta << "," << p->offset << "," << p->tries << endl;
 
         for (int i = 0; i < p->text.size(); i++)
