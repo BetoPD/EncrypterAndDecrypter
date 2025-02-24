@@ -292,7 +292,13 @@ void Encrypt()
 
     for (Parameters *p : parameters)
     {
-        encryptedFile << "#" << p->fasta << "," << p->offset << "," << p->tries << endl;
+        // remove the ../instructions
+        // encryptedFile << "#" << p->fasta << "," << p->offset << "," << p->tries << endl;
+        encryptedFile << "#";
+        string fasta = p->fasta;
+        fasta.erase(0, 16);
+        encryptedFile << fasta << "," << p->offset << "," << p->tries << endl;
+
         for (int i = 0; i < p->text.size(); i++)
         {
             char c = p->text[i];
@@ -322,7 +328,7 @@ void Encrypt()
 void Decrypt()
 {
     vector<Parameters *> parameters;
-    SetParametersVector(&parameters, "../instructions/Instruction_to_decode.txt");
+    SetParametersVector(&parameters, "../decrypt/Encrypted_document.cod");
 
     for (Parameters *p : parameters)
     {
@@ -340,9 +346,24 @@ void Decrypt()
         return;
     }
 
+    // invert the protein_dict
     for (Parameters *p : parameters)
     {
-        decryptedFile << "#" << p->fasta << "," << p->offset << "," << p->tries << endl;
+        unordered_map<char, char> inverted_dict;
+        for (auto it = p->protein_dict.begin(); it != p->protein_dict.end(); it++)
+        {
+            inverted_dict[it->second] = it->first;
+        }
+        p->protein_dict = inverted_dict;
+    }
+
+    for (Parameters *p : parameters)
+    {
+        decryptedFile << "#";
+        string fasta = p->fasta;
+        fasta.erase(0, 16);
+        decryptedFile << fasta << "," << p->offset << "," << p->tries << endl;
+
         for (int i = 0; i < p->text.size(); i++)
         {
             char c = p->text[i];
@@ -367,19 +388,40 @@ void Decrypt()
     }
 }
 
-int main()
+// receive parameters from the command line
+int main(int argc, char *argv[])
 {
-    // // start time
-    // chrono::high_resolution_clock::time_point start = chrono::high_resolution_clock::now();
-    // // run the encryption
-    // Encrypt();
-    // // end time
-    // chrono::high_resolution_clock::time_point end = chrono::high_resolution_clock::now();
-    // // calculate the time
-    // chrono::microseconds duration = chrono::duration_cast<chrono::microseconds>(end - start);
+    // start time
+    chrono::high_resolution_clock::time_point start = chrono::high_resolution_clock::now();
+    // 1 for encrypt, 2 for decrypt
+    if (argc != 2)
+    {
+        cerr << "Error: Invalid number of arguments!" << endl;
+        return 1;
+    }
 
-    // cout << "Time: " << duration.count() << " microseconds" << endl;
-    Encrypt();
-    Decrypt();
+    string mode = argv[1];
+    if (mode == "1")
+    {
+        cout << "Encrypting..." << endl;
+        Encrypt();
+    }
+    else if (mode == "2")
+    {
+        cout << "Decrypting..." << endl;
+        Decrypt();
+    }
+    else
+    {
+        cerr << "Error: Invalid argument!" << endl;
+        return 1;
+    }
+    // end time
+    chrono::high_resolution_clock::time_point end = chrono::high_resolution_clock::now();
+    // calculate the time
+    chrono::microseconds duration = chrono::duration_cast<chrono::microseconds>(end - start);
+
+    cout << "Time: " << duration.count() << " microseconds" << endl;
+
     return 0;
 }
