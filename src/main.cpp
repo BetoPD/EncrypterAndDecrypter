@@ -91,7 +91,7 @@ void GetParameters(string text, Parameters *p)
     }
 }
 
-void SetParametersVector(vector<Parameters *> *p, string filePath = "../encrypt/Original_document.txt")
+void SetParametersVector(vector<Parameters *> *p, string filePath = "./encrypt/Original_document.txt")
 {
     // cout << "Reading file..." << endl;
     ifstream file(filePath);
@@ -282,7 +282,7 @@ void Encrypt()
         // std::cout << std::endl;
     }
 
-    ofstream encryptedFile("../decrypt/Encrypted_document.cod");
+    ofstream encryptedFile("./decrypt/Encrypted_document.cod");
     if (!encryptedFile.is_open())
     {
         cerr << "Error: Could not open file!" << endl;
@@ -328,7 +328,7 @@ void Decrypt()
 {
     std::cout << "Decrypting " << std::endl;
     vector<Parameters *> parameters;
-    SetParametersVector(&parameters, "../decrypt/Encrypted_document.cod");
+    SetParametersVector(&parameters, "./decrypt/Encrypted_document.cod");
 
     for (Parameters *p : parameters)
     {
@@ -338,7 +338,7 @@ void Decrypt()
         // std::cout << std::endl;
     }
 
-    ofstream decryptedFile("../solution/Decrypted_document.txt");
+    ofstream decryptedFile("./solution/Decrypted_document.txt");
     if (!decryptedFile.is_open())
     {
         cerr << "Error: Could not open file!" << endl;
