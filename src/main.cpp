@@ -8,7 +8,7 @@
 #include <chrono>
 // if windows use <algorithm> instead of <bits/stdc++.h> using preprocessor directives
 #ifdef _WIN32
-#include <algorithm> // Para Windows
+#include <algorithm>
 #include <cctype>
 #endif
 
@@ -93,7 +93,7 @@ void GetParameters(string text, Parameters *p)
 
 void SetParametersVector(vector<Parameters *> *p, string filePath = "../encrypt/Original_document.txt")
 {
-    cout << "Reading file..." << endl;
+    // cout << "Reading file..." << endl;
     ifstream file(filePath);
     if (!file.is_open())
     {
@@ -279,7 +279,7 @@ void Encrypt()
         CreateVocabulary(p);
         // PrintVocabulary(p);
         // PrintText(p);
-        std::cout << std::endl;
+        // std::cout << std::endl;
     }
 
     ofstream encryptedFile("../decrypt/Encrypted_document.cod");
@@ -335,7 +335,7 @@ void Decrypt()
         CreateVocabulary(p);
         // PrintText(p);
         // PrintVocabulary(p);
-        std::cout << std::endl;
+        // std::cout << std::endl;
     }
 
     ofstream decryptedFile("../solution/Decrypted_document.txt");
@@ -402,12 +402,10 @@ int main(int argc, char *argv[])
     string mode = argv[1];
     if (mode == "1")
     {
-        cout << "Encrypting..." << endl;
         Encrypt();
     }
     else if (mode == "2")
     {
-        cout << "Decrypting..." << endl;
         Decrypt();
     }
     else
