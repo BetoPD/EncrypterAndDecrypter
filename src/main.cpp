@@ -302,11 +302,11 @@ void Encrypt()
     {
         // remove the ../instructions
         // encryptedFile << "#" << p->fasta << "," << p->offset << "," << p->tries << endl;
-        encryptedFile << "#";
-        string fasta = p->fasta;
-        fasta.erase(0, 15);
+        // encryptedFile << "#";
+        // string fasta = p->fasta;
+        // fasta.erase(0, 15);
         // remove "/"
-        encryptedFile << fasta << "," << p->offset << "," << p->tries << endl;
+        // encryptedFile << fasta << "," << p->offset << "," << p->tries << endl;
 
         for (int i = 0; i < p->text.size(); i++)
         {
@@ -328,17 +328,52 @@ void Encrypt()
                 break;
             }
         }
-        encryptedFile << endl;
+        // encryptedFile << endl;
     }
 
     encryptedFile.close();
+}
+
+void GetLinesParameter(Parameters *p, ifstream &file)
+{
+
+    if (!file.is_open())
+    {
+        cerr << "Error: Could not open file!" << endl;
+        return;
+    }
+
+    string line;
+
+    if (p->thirdParameter == 0)
+    {
+        while (getline(file, line))
+        {
+            if (line.empty())
+                continue;
+
+            p->text += line + '\n';
+        }
+        return;
+    }
+
+    unsigned int count = 0;
+
+    while (getline(file, line) && count < p->thirdParameter)
+    {
+        if (line.empty())
+            continue;
+
+        p->text += line + '\n';
+        count++;
+    }
 }
 
 void Decrypt()
 {
     std::cout << "Decrypting " << std::endl;
     vector<Parameters *> parameters;
-    SetParametersVector(&parameters, "./decrypt/Encrypted_document.cod");
+    SetParametersVector(&parameters, "./instructions/Instruction_to_decode.txt");
 
     for (Parameters *p : parameters)
     {
@@ -347,6 +382,17 @@ void Decrypt()
         // PrintVocabulary(p);
         // std::cout << std::endl;
     }
+
+    string decrypt = "./decrypt/Encrypted_document.cod";
+
+    ifstream file_decrypt(decrypt);
+
+    for (Parameters *p : parameters)
+    {
+        GetLinesParameter(p, file_decrypt);
+    }
+
+    file_decrypt.close();
 
     ofstream decryptedFile("./solution/Decrypted_document.txt");
     if (!decryptedFile.is_open())
@@ -368,11 +414,11 @@ void Decrypt()
 
     for (Parameters *p : parameters)
     {
-        decryptedFile << "#";
-        string fasta = p->fasta;
-        fasta.erase(0, 15);
+        // decryptedFile << "#";
+        // string fasta = p->fasta;
+        // fasta.erase(0, 15);
 
-        decryptedFile << fasta << "," << p->offset << "," << p->tries << endl;
+        // decryptedFile << fasta << "," << p->offset << "," << p->tries << endl;
 
         for (int i = 0; i < p->text.size(); i++)
         {
@@ -394,8 +440,10 @@ void Decrypt()
                 break;
             }
         }
-        decryptedFile << endl;
+        // decryptedFile << endl;
     }
+
+    decryptedFile.close();
 }
 
 // receive parameters from the command line
