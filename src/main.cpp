@@ -234,37 +234,37 @@ void CreateVocabulary(Parameters *p, unsigned int tries = 0)
     fasta.close();
 }
 
-void PrintText(Parameters *p)
-{
-    for (int i = 0; i < p->text.size(); i++)
-    {
-        char c = p->text[i];
+// void PrintText(Parameters *p)
+// {
+//     for (int i = 0; i < p->text.size(); i++)
+//     {
+//         char c = p->text[i];
 
-        switch (c)
-        {
-        case ' ':
-            cout << ' ';
-            break;
-        case '\n':
-            cout << '\n';
-            break;
-        case '\r':
-            cout << '\r';
-            break;
-        default:
-            cout << p->protein_dict[c];
-            break;
-        }
-    }
-}
+//         switch (c)
+//         {
+//         case ' ':
+//             cout << ' ';
+//             break;
+//         case '\n':
+//             cout << '\n';
+//             break;
+//         case '\r':
+//             cout << '\r';
+//             break;
+//         default:
+//             cout << p->protein_dict[c];
+//             break;
+//         }
+//     }
+// }
 
-void PrintVocabulary(Parameters *p)
-{
-    for (auto it = p->protein_dict.begin(); it != p->protein_dict.end(); it++)
-    {
-        cout << it->first << " -> " << it->second << endl;
-    }
-}
+// void PrintVocabulary(Parameters *p)
+// {
+//     for (auto it = p->protein_dict.begin(); it != p->protein_dict.end(); it++)
+//     {
+//         cout << it->first << " -> " << it->second << endl;
+//     }
+// }
 
 void Encrypt()
 {
@@ -300,7 +300,7 @@ void Encrypt()
         // remove "/"
         // encryptedFile << fasta << "," << p->offset << "," << p->tries << endl;
 
-        for (int i = 0; i < p->text.size(); i++)
+        for (unsigned int i = 0; i < p->text.size(); i++)
         {
             char c = p->text[i];
 
@@ -412,7 +412,7 @@ void Decrypt()
 
         // decryptedFile << fasta << "," << p->offset << "," << p->tries << endl;
 
-        for (int i = 0; i < p->text.size(); i++)
+        for (unsigned int i = 0; i < p->text.size(); i++)
         {
             char c = p->text[i];
 
