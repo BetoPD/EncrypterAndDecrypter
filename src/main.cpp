@@ -23,15 +23,6 @@ struct Parameters
     unsigned int thirdParameter;
     unordered_map<char, char> protein_dict;
 
-    Parameters(string fasta, unsigned int offset, unsigned int tries, string text)
-    {
-        this->fasta = fasta;
-        this->offset = offset;
-        this->tries = tries;
-        this->text = text;
-        this->protein_dict = {{'A', '\0'}, {'C', '\0'}, {'D', '\0'}, {'E', '\0'}, {'F', '\0'}, {'G', '\0'}, {'H', '\0'}, {'I', '\0'}, {'K', '\0'}, {'L', '\0'}, {'M', '\0'}, {'N', '\0'}, {'P', '\0'}, {'Q', '\0'}, {'R', '\0'}, {'S', '\0'}, {'T', '\0'}, {'V', '\0'}, {'W', '\0'}, {'Y', '\0'}, {'B', 'Z'}, {'Z', 'B'}, {'X', 'J'}, {'J', 'X'}, {'U', 'O'}, {'O', 'U'}};
-    }
-
     Parameters()
     {
         this->fasta = "";
@@ -290,6 +281,7 @@ void Encrypt()
         // PrintText(p);
         // std::cout << std::endl;
     }
+    // PrintVocabulary(parameters[0]);
 
     ofstream encryptedFile("./decrypt/Encrypted_document.cod");
     if (!encryptedFile.is_open())
